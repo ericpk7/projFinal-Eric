@@ -49,7 +49,7 @@ nslookup teste.com
 
 Abra um navegador e acesse
 
-```http://192.168.50.10```
+```http://192.168.56.24```
 
 #### NFS:
 
