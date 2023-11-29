@@ -1,15 +1,86 @@
-Vagrant.configure("2") do |config|
-  config.vm.define "vm1" do |vm1|
-    vm1.vm.hostname = "vm1"
-    vm1.vm.box = "ubuntu/focal64"
-    vm1.vm.provider "virtualbox" do |vb|
-      vb.memory = 2048
-      vb.cpus = 2
-    end
-    vm1.vm.network "private_network", ip: "192.168.0.10"
-    vm1.vm.network "forwarded_port", guest: 80, host: 8081, host_ip: "192.168.0.10"
-    config.vm.synced_folder "./share", "/home/vagrant/share", type: "rsync"
+# Vagrantfile
 
-    vm1.vm.provision "shell", path: "provision/docker-setup.sh"
+Vagrant.configure("2") do |config|
+
+  # DHCP
+  config.vm.define "dhcp_server" do |dhcp|
+    dhcp.vm.box = "ubuntu/focal64"
+    dhcp.vm.network "private_network", type: "dhcp"
+  
+    dhcp.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get update
+      sudo apt-get install -y isc-dhcp-server
+      echo "INTERFACESv4=\"enp0s8\"" | sudo tee /etc/default/isc-dhcp-server
+      sudo systemctl restart isc-dhcp-server
+    SHELL
+  
+    dhcp.vm.provision "docker" do |d|
+      d.run "dhcp_server",
+        image: "networkboot/dhcpd",
+        ports: ['67:67/udp'],
+        auto_assign_name: false,
+        command: "-d",
+        options: ['--volume', '/vagrant/dhcpd.conf:/etc/dhcp/dhcpd.conf']
+    end
   end
+  
+  # DNS
+  config.vm.define "dns_server" do |dns|
+    dns.vm.box = "ubuntu/focal64"
+    dns.vm.network "private_network", type: "dhcp"
+    dns.vm.provision "docker" do |d|
+      d.run "dns_server",
+        image: "ubuntu/bind9:latest",
+        ports: ['53:53/tcp', '53:53/udp'],
+        auto_assign_name: false,
+        command: "-g",
+        options: ['--volume', '/vagrant/named.conf:/etc/bind/named.conf', '--volume', '/vagrant/db.example.com:/etc/bind/db.example.com']
+    end
+  end
+
+  # APACHE
+  config.vm.define "web_server" do |web|
+    web.vm.box = "ubuntu/focal64"
+    web.vm.network "private_network", type: "dhcp"
+
+    web.vm.provision "docker" do |d|
+      d.run "web_server",
+        image: "httpd",
+        ports: ['80:80'],
+        auto_assign_name: false
+    end
+  end
+
+  # FTP
+  config.vm.define "ftp_server" do |ftp|
+    ftp.vm.box = "ubuntu/focal64"
+    ftp.vm.network "private_network", type: "dhcp"
+    ftp.vm.provision "docker" do |d|
+      d.run "ftp_server",
+        image: "webdevops/vsftp:latest",
+        ports: ['20-21:20-21', '21100-21110:21100-21110'],
+        auto_assign_name: false
+    end
+  end
+
+  # NFS
+  config.vm.define "nfs_server" do |nfs|
+    nfs.vm.box = "ubuntu/focal64"
+    nfs.vm.network "private_network", type: "dhcp"
+    nfs.vm.provision "docker" do |d|
+      d.run "nfs_server",
+        image: "itsthenetwork/nfs-server-alpine",
+        ports: ['2049:2049'],
+        auto_assign_name: false,
+        options: ['--volume', '/share:/nfsshare']
+    end
+  end
+
+  # TEstes
+  config.vm.define "client" do |client|
+    client.vm.box = "ubuntu/focal64"
+    client.vm.network "private_network", type: "dhcp"
+  end
+
+>>>>>>> e439f30 (Add arquivos prontos)
 end
