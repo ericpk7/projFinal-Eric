@@ -29,40 +29,53 @@ vagrant ssh
 
 #### DHCP:
 
-Verifique se o servidor DHCP está em execução:
+Acesse alguma VM (de preferência a client) e verifique o ip da máquina:
 
 ```bash
-docker logs dhcp-server
+ip a
 ```
+
+A máquina deve apresentar a rede enp0s8, e um ip 192.156.56.X
 
 #### DNS (Bind9):
 
-Verifique o status do container Bind9:
+Para o teste do DNS, você pode usar o nslookup no domínio configurado:
 
 ```bash
-docker logs bind9-container
+nslookup teste.com
 ```
 
 #### Web (Apache):
 
 Abra um navegador e acesse
 
-```http://192.168.0.10```
+```http://192.168.50.10```
 
 #### NFS:
 
-Verifique o status do container NFS:
-
+Certifique-se que o cliente nfs está instalado na máquina: 
 ```bash
-docker logs nfs-test-server
+sudo apt-get update
+sudo apt-get install nfs-common
+```
+
+Crie um diretório onde você deseja montar o compartilhamento e monte o compartilhamento NFS:
+```bash
+sudo mount 192.168.56.28:/share /mnt/nfs-share
+```
+
+Verifique se o conteúdo foi compartilhado
+```bash
+ls /mnt/nfs-share
 ```
 
 #### FTP:
 
 Conecte-se ao servidor FTP usando um cliente FTP, usando as credenciais fornecidas nos logs do contêiner.
+Utilize algums dos Ips distribuidos pelo DHCP.
 
 ```bash
-ftp 192.168.0.10
+ftp 192.168.56.28
 ```
 
 ## Encerrando o Ambiente
