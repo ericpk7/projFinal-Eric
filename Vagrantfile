@@ -81,6 +81,4 @@ Vagrant.configure("2") do |config|
     client.vm.box = "ubuntu/focal64"
     client.vm.network "private_network", type: "dhcp"
   end
-
->>>>>>> e439f30 (Add arquivos prontos)
 end
