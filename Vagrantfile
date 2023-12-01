@@ -34,7 +34,7 @@ Vagrant.configure("2") do |config|
         ports: ['53:53/tcp', '53:53/udp'],
         auto_assign_name: false,
         command: "-g",
-        options: ['--volume', '/vagrant/named.conf:/etc/bind/named.conf', '--volume', '/vagrant/db.example.com:/etc/bind/db.example.com']
+        options: ['--volume', '/vagrant/named.conf:/etc/bind/named.conf', '--volume', '/vagrant/db.teste.com:/etc/bind/db.teste.com']
     end
   end
 
@@ -42,12 +42,13 @@ Vagrant.configure("2") do |config|
   config.vm.define "web_server" do |web|
     web.vm.box = "ubuntu/focal64"
     web.vm.network "private_network", type: "dhcp"
-
-    web.vm.provision "docker" do |d|
-      d.run "web_server",
-        image: "httpd",
-        ports: ['80:80'],
-        auto_assign_name: false
+    web.vm.provider "docker" do |d|
+      d.build_dir = "/vm_apache/"
+      d.build_args = [ "-t", "apacheimage" ]
+      d.create_args = [ "-i", "-t" ]
+      d.has_ssh = false
+      d.ports = [ "8080:80" ]
+      d.name = "apache_server"
     end
   end
 
@@ -67,6 +68,12 @@ Vagrant.configure("2") do |config|
   config.vm.define "nfs_server" do |nfs|
     nfs.vm.box = "ubuntu/focal64"
     nfs.vm.network "private_network", type: "dhcp"
+
+    nfs.vm.provision "shell", inline: <<-SHELL
+    sudo apt-get update
+    sudo apt-get install -y nfs-common
+  SHELL
+
     nfs.vm.provision "docker" do |d|
       d.run "nfs_server",
         image: "itsthenetwork/nfs-server-alpine",
@@ -80,5 +87,9 @@ Vagrant.configure("2") do |config|
   config.vm.define "client" do |client|
     client.vm.box = "ubuntu/focal64"
     client.vm.network "private_network", type: "dhcp"
+    client.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get update
+      sudo apt-get install -y nfs-common
+    SHELL
   end
 end
