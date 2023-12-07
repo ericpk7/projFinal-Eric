@@ -20,16 +20,16 @@ Execute o script de provisionamento Vagrant para configurar a máquina virtual:
 vagrant up
 ```
 
-Entre na máquina virtual:
+Entre na máquina virtual cliente para realizar os testes:
 ```bash
-vagrant ssh
+vagrant ssh client
 ```
 
 ## Testando os Serviços
 
 #### DHCP:
 
-Acesse alguma VM (de preferência a client) e verifique o ip da máquina:
+Agora na VM Client, verifique o ip da máquina:
 
 ```bash
 ip a
@@ -39,43 +39,41 @@ A máquina deve apresentar a rede enp0s8, e um ip 192.156.56.X
 
 #### DNS (Bind9):
 
-Para o teste do DNS, você pode usar o nslookup no domínio configurado:
+Para o teste do DNS, você pode usar o cat para verificar o arquivo de configuração do DNS:
 
 ```bash
-nslookup teste.com
+cat /etc/resolv.conf
 ```
 
 #### Web (Apache):
 
-Abra um navegador e acesse
+Abra um navegador e acesse o ip da VM1:
 
-```http://192.168.56.24```
+```http://192.168.56.44```
 
 #### NFS:
 
-Certifique-se que o cliente nfs está instalado na máquina: 
+Crie um diretório onde você deseja montar o compartilhamento:
 ```bash
-sudo apt-get update
-sudo apt-get install nfs-common
+sudo mkdir /mnt/nfs
 ```
 
-Crie um diretório onde você deseja montar o compartilhamento e monte o compartilhamento NFS:
+Agora monte o diretório com:
 ```bash
-sudo mount 192.168.56.28:/share /mnt/nfs-share
+sudo mount -t nfs 192.168.56.44:/nfsshare /mnt/nfs
 ```
 
 Verifique se o conteúdo foi compartilhado
 ```bash
-ls /mnt/nfs-share
+ls /mnt/nfs
 ```
 
 #### FTP:
 
-Conecte-se ao servidor FTP usando um cliente FTP, usando as credenciais fornecidas nos logs do contêiner.
-Utilize algums dos Ips distribuidos pelo DHCP.
+Conecte-se ao servidor FTP usando um cliente FTP, usando as credenciais fornecidas nos logs do contêiner. 
 
 ```bash
-ftp 192.168.56.28
+ftp 192.168.56.44
 ```
 
 ## Encerrando o Ambiente
