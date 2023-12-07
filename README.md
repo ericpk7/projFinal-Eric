@@ -37,7 +37,7 @@ ip a
 
 A máquina deve apresentar a rede enp0s8, e um ip 192.156.56.X
 
-#### DNS (Bind9):
+#### DNS:
 
 Para o teste do DNS, você pode usar o cat para verificar o arquivo de configuração do DNS:
 
@@ -70,10 +70,10 @@ ls /mnt/nfs
 
 #### FTP:
 
-Conecte-se ao servidor FTP usando um cliente FTP, usando as credenciais fornecidas nos logs do contêiner. 
+Conecte-se ao servidor FTP usando um cliente FTP, usando as credenciais fornecidas nos logs do contêiner.
 
 ```bash
-ftp 192.168.56.44
+ftp 192.168.56.44 21
 ```
 
 ## Encerrando o Ambiente
